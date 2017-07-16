@@ -8,6 +8,7 @@ var roleMiner = require('role.miner');
 var utils = require('utils');
 var utilsGC = require('utils.garbageCollection');
 var utilsDynSpawn = require('utils.dynSpawn');
+
 factory.init();
 
 module.exports.loop = function () {

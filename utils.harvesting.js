@@ -37,8 +37,6 @@ var utilsHarvesting = {
             var source = creep.pos.findClosestByPath(FIND_SOURCES,{filter: (s) => s.id == creep.memory.source});
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source, {visualizePathStyle: {stroke: utils.color.harvest}});
-            } else {
-                creep.memory.routing=false;
             }
         }
     }

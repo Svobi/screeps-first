@@ -83,13 +83,18 @@ module.exports = {
     },
     calcNumberOfCreeps: function ( Spawn, role ) {
         var max = Spawn.room.energyCapacityAvailable
+        var container = this.getCountContainerWithResource(Spawn.room);
         var y = ((Math.sqrt(5000-(max*0.001)) / 10.02) - Math.log10((max-280)/150)*1.7);
         switch (role) {
             case utils.roles.harvester:
-                return Math.floor(y);
+                return Math.floor(y) - container;
                 break;
             case utils.roles.upgrader:
-                return Math.floor(y/1.5);
+                if (this.getResourcesInContainer(Spawn.room)) { 
+                    return Math.floor(y/1.2);
+                } else {
+                    return Math.floor(y/1.6);
+                }
                 break;
             case utils.roles.builder:
                 if (this.config.builderOnlyWhenNeeded) {
@@ -106,12 +111,11 @@ module.exports = {
                 return Math.floor(y/2);
                 break;
             default:
-                return 1;
+                return container;
                 break;
         }
     },
     buildPartsPattern: function( role, test ) {
-        console.log('Calculate for role : ' + role);
         var calc = [];
         var loop = this.parts.length;
         while (loop--) {
@@ -122,19 +126,16 @@ module.exports = {
         
         var reserve = Math.round(max/100 * this.reserve);
         var use = max - reserve;
-        console.log(max, reserve, use);
         var usePattern = false;
         var loop = this.matrix.length;
         while (loop--) {
             if (this.matrix[loop].type==role) {
                 usePattern = this.matrix[loop];
-                console.log('Found Pattern for '+this.matrix[loop].type);
                 loop=0;
             }
         }
         var configParts = [];
         if (usePattern.cache!=undefined&&usePattern.cache&&usePattern.cache.use==use) {
-            console.log('dynSpawn used Cache : '+usePattern.cache.build);
             configParts = usePattern.cache.build;
         } else {
             usePattern.cache = {};
@@ -155,8 +156,6 @@ module.exports = {
                         use-=tryPart.price;
                         configParts.push(tryPart.val);
                     } else{
-                        console.log('Rest : ' + use);
-                        console.log(configParts);
                         use=0;
                     }
                 }
@@ -168,5 +167,47 @@ module.exports = {
     },
     getSpawn: function () {
         return Game.spawns.s001;
+    },
+    getCountContainerWithResource: function (room) {
+        var sources = room.find(FIND_STRUCTURES, {
+		    filter: function(structure){
+		         if (structure.structureType==STRUCTURE_CONTAINER) {
+		             var targets = room.find(FIND_SOURCES);
+		             var l=targets.length;
+		             var hasResNear = false;
+		             while (l--) {
+	                    if(structure.pos.inRangeTo(targets[l], 1)) {
+		                    l=0;
+		                    hasResNear = true;
+		                }
+		             }
+		            return hasResNear;
+		         }
+                return false
+            }
+		});
+		return sources.length;
+    },
+    getResourcesInContainer: function (room) {
+        var sources = room.find(FIND_STRUCTURES, {
+		    filter: function(structure){
+		         if (structure.structureType==STRUCTURE_CONTAINER) {
+		            return true; 
+		         } else { 
+		             return false;
+		         }
+                
+            }
+		});
+		var i = sources.length;
+		var energy=0;
+		var engCap=0;
+		while(i--){
+		    energy += sources[i].store[RESOURCE_ENERGY];
+		    engCap += sources[i].storeCapacity;
+		}
+		console.log('Resources ' + energy + '/' + engCap);
+		if (energy/engCap*100>50) return true;
+		return false;
     },
 };

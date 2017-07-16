@@ -13,9 +13,18 @@ var roleMiner = {
 		var sources = creep.room.find(FIND_STRUCTURES, {
 		    filter: function(structure){
 		         if (structure.structureType==STRUCTURE_CONTAINER) {
-		            //if(creep.pos.inRangeTo(source, 0)) {
-		                
-		            //}
+		             var targets = creep.room.find(FIND_SOURCES);
+		             var l=targets.length;
+		             var hasResNear = false;
+		             while (l--) {
+	                    if(structure.pos.inRangeTo(targets[l], 1)) {
+		                    l=0;
+		                     hasResNear = true;
+		                }
+		             }
+		            if (!hasResNear) 
+		                return false;
+		            
 		            if(Memory.sources[structure.id] == undefined || Memory.sources[structure.id].miner == undefined || Memory.sources[structure.id].miner == creep.id)
     					return true;
     				if(Game.getObjectById(Memory.sources[structure.id].miner) == null)
@@ -29,7 +38,6 @@ var roleMiner = {
 	},
 	setSourceToMine: function(source) {
 		var creep = this.creep;
-	console.log(source);
 		if(!source)
 			return;
 
@@ -57,14 +65,10 @@ var roleMiner = {
 
 	onSpawn: function() {
 		var creep = this.creep;
-
 		creep.memory.isNearSource = false;
 		creep.memory.helpers = [];
-
 		var source = this.getOpenSource();
-		console.log(source);
 		this.setSourceToMine(source);
-
 		creep.memory.onCreated = true;
 	},
 
@@ -80,7 +84,7 @@ var roleMiner = {
 		//moving away from the source when it's empty, it'd regenerate before they got to another one.
 		//For this, we assign one miner to one source, and they stay with it
 		var source = Game.getObjectById(creep.memory.source);
-        console.log(creep.memory.source);
+        
 		if(source == null) {
 			var source = this.getOpenSource();
 
