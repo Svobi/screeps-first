@@ -10,7 +10,7 @@ var buildingTower = {
                 filter: (structure) => structure.hits < structure.hitsMax
             });
             if(closestDamagedStructure) {
-                tower.repair(closestDamagedStructure);
+                //tower.repair(closestDamagedStructure);
             }
             var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
             if(closestHostile) {

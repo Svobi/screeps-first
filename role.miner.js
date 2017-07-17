@@ -10,6 +10,7 @@ Object.assign( roleMiner, {
 		var sources = creep.room.find(FIND_STRUCTURES, {
 		    filter: function(structure){
 		         if (structure.structureType==STRUCTURE_CONTAINER) {
+		             if (!structure.energy<structure.energyCapacity) return false;
 		             var targets = creep.room.find(FIND_SOURCES);
 		             var l=targets.length;
 		             var hasResNear = false;
@@ -100,7 +101,12 @@ Object.assign( roleMiner, {
 		    creep.moveTo(source);
         } else {
             var resource = creep.pos.findClosestByPath(FIND_SOURCES);
-            if(creep.harvest(resource) == ERR_NOT_IN_RANGE) {creep.say('Resource ?!');}
+            var store = Game.getObjectById(creep.memory.source);
+            if (store.store[RESOURCE_ENERGY]<store.storeCapacity) {
+                if(creep.harvest(resource) == ERR_NOT_IN_RANGE) {creep.say('Resource ?!');}
+            } else {
+                creep.say('FULL!');
+            }
             
         }
 	}

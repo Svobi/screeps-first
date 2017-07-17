@@ -12,13 +12,15 @@ module.exports = {
     config : {
         builderOnlyWhenNeeded : true
     },
-    reserve: 20,
+    reserve: 25,
     matrix: [
+        {type: utils.roles.lrharv, path: ['WORK', 'CARRY', 'CARRY', 'CARRY', 'MOVE'], minPath: ['WORK',  'CARRY', 'MOVE'], cache:false},
         {type: utils.roles.soldier, path: ['ATTACK', 'MOVE'], minPath: ['ATTACK', 'MOVE'], cache:false},
-        {type: utils.roles.miner, path: ['WORK'], minPath: ['MOVE', 'WORK'], cache:false},
         {type: utils.roles.healer, path: ['WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
         {type: utils.roles.upgrader, path: ['WORK', 'CARRY', 'MOVE'], minPath:['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
-        {type: utils.roles.builder, path: ['WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
+        {type: utils.roles.builder, path: ['WORK', 'CARRY', 'WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
+        {type: utils.roles.transporter, path: ['CARRY', 'CARRY', 'MOVE'], minPath: ['CARRY','MOVE'], cache:false},
+        {type: utils.roles.miner, path: ['WORK'], minPath: ['MOVE', 'WORK'], cache:false, maxAddParts: 5},
         {type: utils.roles.harvester, path: ['WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
     ],
     parts : [
@@ -30,76 +32,29 @@ module.exports = {
 		{type: 'WORK', price: 100, count: 0, mul: -1, val: WORK},
 		{type: 'CARRY', price: 50, count: 0, mul: -1, val: CARRY},
 	],
-	getPart: function( partTypeName ) {
-	    var i = this.parts.length;
-	    var res = false;
-	    while(i--) {
-	        if (this.parts[i].type==partTypeName) return this.parts[i];
-	    }
-	},
-	run: function () {
-	    var Spawn = this.getSpawn();
-        var loop = this.matrix.length;
-        var info = '';
-        var tryedToSpawn = false;
-        while (loop--) {
-            var role = this.matrix[loop].type;
-            tryedToSpawn = this.checkForRole(Spawn, tryedToSpawn, role);
-            info += ' ' + this.matrix[loop].type+':'+this.actualActive[role].count+'/'+this.actualActive[role].shouldHave+'|';
-        }
-        console.log(info);
-        
-	},
-	checkForRole: function ( Spawn, alreadyTryedToSpawn, role ) {
-	    var tryedToSpawn = alreadyTryedToSpawn;
-	    var roleCreeps = _.filter(Game.creeps, (creep) => creep.memory.role == role);
-	    if (this.actualActive[role]==undefined) {
-	        this.actualActive[role] = {};
-	    }
-	    this.actualActive[role].count = roleCreeps.length;
-	    var shouldHaveCreepNumber = this.calcNumberOfCreeps( Spawn, role );
-	    this.actualActive[role].shouldHave = shouldHaveCreepNumber;
-	    if (!alreadyTryedToSpawn) {
-            if(roleCreeps.length < shouldHaveCreepNumber) {
-                console.log('Next will be ' + role);
-                tryedToSpawn = true;
-                if (role=='soldier') {
-                    this.doSpawn(Spawn, role, {target: Spawn.room.name});
-                } else {
-                    this.doSpawn(Spawn, role);    
-                }
-            }
-	    }
-        return tryedToSpawn;
-	},
-	doSpawn: function (Spawn, role, options){
-	    
-        var pattern = this.buildPartsPattern(role);
-        if (options==undefined) {
-            options = {};
-        }
-        
-        options.role = role;
-        Spawn.createCreep(pattern, undefined, options)
-    },
-    calcNumberOfCreeps: function ( Spawn, role ) {
-        var max = Spawn.room.energyCapacityAvailable
-        var container = this.getCountContainerWithResource(Spawn.room);
+    calcNumberOfCreeps: function ( role ) {
+        var max = this.spawn.room.energyCapacityAvailable
+        var container = this.getCountContainerWithResource(this.spawn.room);
         var y = ((Math.sqrt(5000-(max*0.001)) / 10.02) - Math.log10((max-280)/150)*1.7);
         switch (role) {
             case utils.roles.harvester:
                 return Math.floor(y) - container;
                 break;
             case utils.roles.upgrader:
-                if (this.getResourcesInContainer(Spawn.room)) { 
-                    return Math.floor(y/1.2);
+                var targets = this.spawn.room.find(FIND_CONSTRUCTION_SITES);
+                if(targets.length) {
+                    return Math.floor(y/2);
                 } else {
-                    return Math.floor(y/1.6);
+                    if (this.getResourcesInContainer(this.spawn.room)) { 
+                        return Math.floor(y/1.2);
+                    } else {
+                        return Math.floor(y/2);
+                    }
                 }
                 break;
             case utils.roles.builder:
                 if (this.config.builderOnlyWhenNeeded) {
-                    var targets = Spawn.room.find(FIND_CONSTRUCTION_SITES);
+                    var targets = this.spawn.room.find(FIND_CONSTRUCTION_SITES);
                     if(targets.length) {
                         return Math.floor(y/2);
                     } else return 0;
@@ -111,22 +66,92 @@ module.exports = {
             case utils.roles.soldier:
                 return Math.floor(y/2);
                 break;
-            default:
+            case utils.roles.miner:
                 return container;
+                break;
+            case utils.roles.transporter:
+                return parseInt(container/2);
+                break;
+            default:
+                return 0;
                 break;
         }
     },
+	action: function (spawn) {
+	    this.spawn = spawn;
+	    
+        var loop = this.matrix.length;
+        var info = '';
+        var tryedToSpawn = false;
+        
+        if (Memory.spawnQue.length>0) {
+            console.log('Que Spawn');
+            var newO = Memory.spawnQue[0];
+            if (newO!=undefined) {
+                if (this.doSpawn(newO.role, newO.options)) Memory.spawnQue.shift();
+            }
+        } else {
+            while (loop--) {
+                var role = this.matrix[loop].type;
+                tryedToSpawn = this.checkForRole(tryedToSpawn, role);
+                info += ' ' + this.matrix[loop].type+':'+this.actualActive[role].count+'/'+this.actualActive[role].shouldHave+'|';
+            }
+            console.log(info);
+        }
+    },
+	getPart: function( partTypeName ) {
+	    var i = this.parts.length;
+	    var res = false;
+	    while(i--) {
+	        if (this.parts[i].type==partTypeName) return this.parts[i];
+	    }
+	},
+	checkForRole: function ( alreadyTryedToSpawn, role ) {
+	    var tryedToSpawn = alreadyTryedToSpawn;
+	    var roleCreeps = _.filter(Game.creeps, (creep) => creep.memory.role == role);
+	    if (this.actualActive[role]==undefined) {
+	        this.actualActive[role] = {};
+	    }
+	    this.actualActive[role].count = roleCreeps.length;
+	    var shouldHaveCreepNumber = this.calcNumberOfCreeps( role );
+	    this.actualActive[role].shouldHave = shouldHaveCreepNumber;
+	    if (!alreadyTryedToSpawn) {
+            if(roleCreeps.length < shouldHaveCreepNumber) {
+                console.log('Next will be ' + role);
+                tryedToSpawn = true;
+                if (role=='soldier') {
+                    this.doSpawn(role, {target: this.spawn.room.name});
+                } else {
+                    this.doSpawn(role);    
+                }
+            }
+	    }
+        return tryedToSpawn;
+	},
+	doSpawn: function (role, options){
+	    
+        var pattern = this.buildPartsPattern(role);
+        if (options==undefined) {
+            options = {};
+        }
+        options.role = role;
+        options.spawning = true;
+        
+        return this.spawn.createCreep(pattern, undefined, options)
+    },
+    
     buildPartsPattern: function( role, emergency ) {
         var calc = [];
         var loop = this.parts.length;
         while (loop--) {
             calc[this.parts[loop].type] = this.parts[loop].price;
         }
-        var Spawn = this.getSpawn();
-        var max = Spawn.room.energyCapacityAvailable
+       
+        var max = this.spawn.room.energyCapacityAvailable
         
         var reserve = Math.round(max/100 * this.reserve);
         var use = max - reserve;
+        
         if (use<300) use = 300;
         var usePattern = false;
         var loop = this.matrix.length;
@@ -150,14 +175,16 @@ module.exports = {
                     configParts.push(tryPart.val);
                 }
             }
-            while( use > 0 ) {
-                console.log(use);
+            var maxAddParts=99;
+            if (usePattern.maxAddParts!=undefined){maxAddParts=usePattern.maxAddParts}
+            while( use > 0 && maxAddParts>0) {
                 var loop = usePattern.path.length;
-                while (loop--) {
+                while (loop-- && maxAddParts>0) {
                     var tryPart = this.getPart(usePattern.path[loop]);
                     if (tryPart.price<=use) {
                         use-=tryPart.price;
                         configParts.push(tryPart.val);
+                        maxAddParts--;
                     } else{
                         use=0;
                     }
@@ -167,9 +194,6 @@ module.exports = {
         }
         console.log('build : '+configParts + ' for ' + role);
         return configParts;
-    },
-    getSpawn: function () {
-        return Game.spawns.s001;
     },
     getCountContainerWithResource: function (room) {
         var sources = room.find(FIND_STRUCTURES, {

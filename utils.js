@@ -5,7 +5,9 @@ module.exports = {
         builder: 'builder', 
         soldier: 'soldier', 
         healer: 'healer',
-        miner: 'miner'
+        miner: 'miner',
+        transporter: 'transporter',
+        lrharv: 'lrharv'
     },
     color : {
         harvest : '#123123',

@@ -1,5 +1,20 @@
 var utils = require('utils');
 var utilsHarvesting = {
+    container: function(creep) {
+        var containers = creep.room.find(FIND_STRUCTURES, {
+                filter: function(structure){
+                    return structure.structureType == STRUCTURE_CONTAINER &&
+                        structure.store[RESOURCE_ENERGY] > 0
+                }
+            });
+        var container = creep.pos.findClosestByPath(containers);    
+        if (container) {
+            var c=creep.withdraw(container, RESOURCE_ENERGY);
+            if(creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(container, {visualizePathStyle: {stroke: utils.color.container}});
+            }
+        }
+    },
     containerOrHarvest: function(creep) {
         var containers = creep.room.find(FIND_STRUCTURES, {
                 filter: function(structure){
@@ -20,7 +35,11 @@ var utilsHarvesting = {
     /** @param {Creep} creep **/
     harvest: function(creep) {
         if(creep.carry.energy < creep.carryCapacity) {
-            var targets = creep.room.find(FIND_SOURCES);
+            var targets = creep.room.find(FIND_SOURCES, {
+                filter: function(structure){
+                    return structure.energy > 0
+                }
+            });
             if(!creep.memory.source||creep.memory.source==-1){
                 var checkNodesCount = {c:99999999, id: -1};
                 for (var i=0; i<targets.length; i++) {
