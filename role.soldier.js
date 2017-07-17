@@ -1,5 +1,9 @@
-module.exports = {
-    run: function(creep) {
+var role_base = require('role.base');
+var roleSoldier = Object.create(role_base);
+Object.assign( roleSoldier, {
+       action: function () {
+        var creep = this.creep;
+
 	    if(creep.room.name == creep.memory.target) {
             target = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS)
             if(!target) {
@@ -22,4 +26,6 @@ module.exports = {
             }
         }
 	}
-};
+});
+
+module.exports = roleSoldier;

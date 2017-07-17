@@ -78,8 +78,9 @@ module.exports = {
         if (options==undefined) {
             options = {};
         }
+        
         options.role = role;
-        Spawn.createCreep(pattern, undefined, {role: role})
+        Spawn.createCreep(pattern, undefined, options)
     },
     calcNumberOfCreeps: function ( Spawn, role ) {
         var max = Spawn.room.energyCapacityAvailable
@@ -115,7 +116,7 @@ module.exports = {
                 break;
         }
     },
-    buildPartsPattern: function( role, test ) {
+    buildPartsPattern: function( role, emergency ) {
         var calc = [];
         var loop = this.parts.length;
         while (loop--) {
@@ -126,6 +127,7 @@ module.exports = {
         
         var reserve = Math.round(max/100 * this.reserve);
         var use = max - reserve;
+        if (use<300) use = 300;
         var usePattern = false;
         var loop = this.matrix.length;
         while (loop--) {
@@ -149,6 +151,7 @@ module.exports = {
                 }
             }
             while( use > 0 ) {
+                console.log(use);
                 var loop = usePattern.path.length;
                 while (loop--) {
                     var tryPart = this.getPart(usePattern.path[loop]);

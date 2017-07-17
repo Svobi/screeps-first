@@ -1,8 +1,12 @@
 var utilsHarvesting = require('utils.harvesting');
 var utils = require('utils');
-var roleBuilder = {
-    /** @param {Creep} creep **/
-    run: function(creep) {
+
+var role_base = require('role.base');
+var roleBuilder = Object.create(role_base);
+Object.assign( roleBuilder, {
+    action: function () {
+        var creep = this.creep;
+        
         if(creep.memory.building && creep.carry.energy == 0) {
             creep.memory.building = false;
             creep.memory.source = -1;
@@ -28,6 +32,6 @@ var roleBuilder = {
             utilsHarvesting.containerOrHarvest(creep);
         }
     }
-};
+});
 
 module.exports = roleBuilder;

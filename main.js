@@ -6,6 +6,7 @@ var roleHealer = require('role.healer');
 var roleSoldier = require('role.soldier');
 var roleMiner = require('role.miner');
 var utils = require('utils');
+var buildingTower = require('building.tower');
 var utilsGC = require('utils.garbageCollection');
 var utilsDynSpawn = require('utils.dynSpawn');
 
@@ -15,23 +16,17 @@ module.exports.loop = function () {
     factory.run();
     utilsGC.run();
     utilsDynSpawn.run();
-    var tower = Game.getObjectById('TOWER_ID');
-    if(tower) {
-        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax
-        });
-        if(closestDamagedStructure) {
-            tower.repair(closestDamagedStructure);
-        }
-
-        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        if(closestHostile) {
-            tower.attack(closestHostile);
-        }
-    }
+   
+   for (var spawn in Game.spawns) {
+       console.log(spawn);
+      // buildingTower.action(spawn);
+   }
+   
+   
     var role = null;
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
+        
         if(creep.memory.role == 'harvester') {
             role = roleHarvester;
         }
@@ -51,7 +46,6 @@ module.exports.loop = function () {
             role = roleMiner;
         }
         role.creep = creep;
-       
 		role.run(creep);
     }
 }

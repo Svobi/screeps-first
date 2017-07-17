@@ -1,9 +1,13 @@
 var roleUpgrader = require('role.upgrader')
 var utilsHarvesting = require('utils.harvesting');
-var roleHealer = {
 
+var role_base = require('role.base');
+var roleHealer = Object.create(role_base);
+Object.assign( roleHealer, {
     /** @param {Creep} creep **/
-    run: function(creep) {
+        action: function () {
+        var creep = this.creep;
+
         creep.say('Medic');
 	    if(creep.memory.healing && creep.carry.energy == 0) {
             creep.memory.healing = false;
@@ -29,6 +33,6 @@ var roleHealer = {
 	        utilsHarvesting.containerOrHarvest(creep);
 	    }
 	}
-};
+});
 
 module.exports = roleHealer;
