@@ -1,11 +1,11 @@
 var utils = require('utils');
 var utilsHarvesting = require('utils.harvesting');
-var routing = require('path.routing');
 
 var role_base = require('role.base');
 var roleHarvester = Object.create(role_base);
 Object.assign( roleHarvester, {
-       action: function () {
+    name : utils.roles.harvester,
+    action: function () {
         var creep = this.creep;
 
         
@@ -51,9 +51,15 @@ Object.assign( roleHarvester, {
                     }
                 });
                 if (container.length>0) {
-                    var tres = creep.transfer(container[0], RESOURCE_ENERGY); 
+                    var next = creep.pos.findClosestByRange(container);
+                    var total = _.sum(creep.carry);
+                    var tres = creep.transfer(next, RESOURCE_ENERGY); 
                     if(tres == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(container[0], {visualizePathStyle: {stroke: utils.color.unload}});
+                        creep.moveTo(next, {visualizePathStyle: {stroke: utils.color.unload}});
+                    } else {
+                        creep.memory.info = creep.memory.info || {};
+                        creep.memory.info.harvested = creep.memory.info.harvested || 0;
+                        creep.memory.info.harvested += total;
                     }
                 } else {
                     var pause = Game.flags["Pause"];

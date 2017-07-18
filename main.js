@@ -1,13 +1,12 @@
 var factory = require('factory');
-var roleManager = require('role.Mananger');
-
-var utils = require('utils');
-var buildingTower = require('building.tower');
 var utilsGC = require('utils.garbageCollection');
+var roleManager = require('role.Mananger');
 var utilsDynSpawn = require('utils.dynSpawn');
+var buildingTower = require('building.tower');
+
 
 factory.init();
-// Memory.spawnQue.push({role: 'lrharv', options:{target:'W2N7', home:'W1N7', sourceIndex: 0}});
+
 module.exports.loop = function () {
     factory.run();
     utilsGC.run();
@@ -19,5 +18,11 @@ module.exports.loop = function () {
     }
    
     roleManager.action();
-
+    
 }
+
+/*
+Memory.spawnQue.push({role: 'claimer', options:{target:'W3N7', home:'W1N7', parts:[MOVE, CLAIM]}});
+Memory.spawnQue.push({role: 'builder', options:{target:'W3N7', home:'W1N7'}});
+Memory.spawnQue.push({role: 'upgrader', options:{target:'W3N7', home:'W1N7'}});
+*/

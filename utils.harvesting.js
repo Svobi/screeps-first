@@ -1,25 +1,39 @@
 var utils = require('utils');
 var utilsHarvesting = {
     container: function(creep) {
-        var containers = creep.room.find(FIND_STRUCTURES, {
-                filter: function(structure){
-                    return structure.structureType == STRUCTURE_CONTAINER &&
-                        structure.store[RESOURCE_ENERGY] > 0
-                }
+        
+        var dropenergy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+            filter: (d) => {return (d.resourceType == RESOURCE_ENERGY)}
             });
-        var container = creep.pos.findClosestByPath(containers);    
-        if (container) {
-            var c=creep.withdraw(container, RESOURCE_ENERGY);
-            if(creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(container, {visualizePathStyle: {stroke: utils.color.container}});
+        if (dropenergy) {
+            if (creep.pickup(dropenergy) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(dropenergy)
+            }
+        } else {
+            var containers = creep.room.find(FIND_STRUCTURES, {
+                    filter: function(structure){
+                        return structure.structureType == STRUCTURE_CONTAINER &&
+                            structure.store[RESOURCE_ENERGY] > 0
+                    }
+            });
+            var container = creep.pos.findClosestByPath(containers);    
+            if (container) {
+                var c=creep.withdraw(container, RESOURCE_ENERGY);
+                if(creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(container, {visualizePathStyle: {stroke: utils.color.container}});
+                }
             }
         }
     },
     containerOrHarvest: function(creep) {
         var containers = creep.room.find(FIND_STRUCTURES, {
-                filter: function(structure){
-                    return structure.structureType == STRUCTURE_CONTAINER &&
-                        structure.store[RESOURCE_ENERGY] > 0
+                filter: function(s){
+                    return (
+                        s.structureType == STRUCTURE_CONTAINER &&
+                        s.store[RESOURCE_ENERGY] > creep.carryCapacity
+                        ) || 
+                        (s.structureType == STRUCTURE_STORAGE &&
+                        s.store[RESOURCE_ENERGY] > creep.carryCapacity)
                 }
             });
         var container = creep.pos.findClosestByPath(containers);    

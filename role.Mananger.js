@@ -1,43 +1,31 @@
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
-var roleHealer = require('role.healer');
-var roleSoldier = require('role.soldier');
-var roleMiner = require('role.miner');
-var roleTransporter = require('role.transporter');
-var roleLRHarv = require('role.lrharv');
+var rules = require('rules.Manager');
+var availableRoles = [
+    roleTransporter = require('role.transporter'),
+    roleHarvester = require('role.harvester'),
+    roleUpgrader = require('role.upgrader'),
+    roleBuilder = require('role.builder'),
+    roleHealer = require('role.healer'),
+    roleSoldier = require('role.soldier'),
+    roleMiner = require('role.miner'),
+    roleLRHarv = require('role.lrharv'),
+    roleClaimer = require('role.claimer')
+];
 
 module.exports = {
     action: function () {
         var role = null;
+        var roleLoop=0;
         for(var name in Game.creeps) {
             var creep = Game.creeps[name];
-            
-            if(creep.memory.role == 'harvester') {
-                role = roleHarvester;
+            roleLoop = availableRoles.length;
+            while(roleLoop--) {
+                if (creep.memory.role == availableRoles[roleLoop].name) {
+                    role = availableRoles[roleLoop];
+                    roleLoop=0;
+                }
             }
-            if(creep.memory.role == 'upgrader') {
-                role = roleUpgrader;
-            }
-            if(creep.memory.role == 'builder') {
-                role = roleBuilder;
-            }
-            if(creep.memory.role == 'healer') {
-                role = roleHealer;
-            }
-            if(creep.memory.role == 'soldier') {
-                role = roleSoldier;
-            }
-            if(creep.memory.role == 'miner') {
-                role = roleMiner;
-            }
-            if(creep.memory.role == 'transporter') {
-                role = roleTransporter;
-            }
-            if(creep.memory.role == 'lrharv') {
-                role = roleLRHarv;
-            }
-            //console.log(name, role);
+            //console.log(name, creep.memory.role, role.name);
+            rules.handle(creep);
             role.creep = creep;
     		role.run(creep);
         }

@@ -1,8 +1,9 @@
+var utils = require('utils');
 var utilsHarvesting = require('utils.harvesting');
-
 var role_base = require('role.base');
 var roleMiner = Object.create(role_base);
 Object.assign( roleMiner, {
+	name : utils.roles.miner,
 	getOpenSource: function()
 	{
 		var creep = this.creep;

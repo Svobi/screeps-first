@@ -1,8 +1,16 @@
+var utils = require('utils');
 var role_base = require('role.base');
 var roleLRHarv = Object.create(role_base);
+
 Object.assign( roleLRHarv, {
+    name : utils.roles.lrharv,
     action: function() {
         var creep = this.creep;
+        this.talk('LRH - '+creep.memory.sourceIndex);
+        if (creep.memory.info!=undefined && creep.memory.info.harvested) {
+            this.talk(creep.memory.info.harvested);
+        }
+
         if (creep.memory.working==undefined) creep.memory.working = false;
         // if creep is bringing energy to a structure but has no energy left
         if (creep.memory.working == true && creep.carry.energy == 0) {
@@ -25,21 +33,30 @@ Object.assign( roleLRHarv, {
                     // a property called filter which can be a function
                     // we use the arrow operator to define it
                     filter: (s) => (
-                        ((
-                            s.structureType == STRUCTURE_EXTENSION ||
-                            s.structureType == STRUCTURE_SPAWN ||
-                            s.structureType == STRUCTURE_TOWER 
-                        ) && s.energy < s.energyCapacity)
-                        || (s.structureType == STRUCTURE_CONTAINER)
+                        (
+                            (
+                                s.structureType == STRUCTURE_EXTENSION ||
+                                s.structureType == STRUCTURE_SPAWN ||
+                                s.structureType == STRUCTURE_TOWER 
+                            ) && (s.energy < s.energyCapacity)
+                        ) || (
+                            (s.structureType == STRUCTURE_CONTAINER) && 
+                            (s.store[RESOURCE_ENERGY] < s.storeCapacity)
+                        )
                         )
                 });
                 next = creep.pos.findClosestByRange(structure);
                 // if we found one
                 if (next != undefined) {
                     // try to transfer energy, if it is not in range
+                    var total = _.sum(creep.carry);
                     if (creep.transfer(next, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         // move towards it
                         creep.moveTo(next);
+                    } else {
+                        creep.memory.info = creep.memory.info || {};
+                        creep.memory.info.harvested = creep.memory.info.harvested || 0;
+                        creep.memory.info.harvested += total;
                     }
                 }
             }
@@ -56,6 +73,7 @@ Object.assign( roleLRHarv, {
             // if in target room
             if (creep.room.name == creep.memory.target) {
                 // find source
+                if (creep.memory.sourceIndex==undefined) creep.memory.sourceIndex = 0;
                 if (creep.memory.srsID==undefined) {
                     var source = creep.room.find(FIND_SOURCES)[creep.memory.sourceIndex];
                     creep.memory.srsID = source.id

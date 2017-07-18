@@ -7,7 +7,8 @@ module.exports = {
         healer: 'healer',
         miner: 'miner',
         transporter: 'transporter',
-        lrharv: 'lrharv'
+        lrharv: 'lrharv',
+        claimer: 'claimer'
     },
     color : {
         harvest : '#123123',

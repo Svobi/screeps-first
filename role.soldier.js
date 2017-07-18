@@ -1,9 +1,12 @@
+var utils = require('utils');
 var role_base = require('role.base');
+
 var roleSoldier = Object.create(role_base);
 Object.assign( roleSoldier, {
-       action: function () {
+    name : utils.roles.soldier,
+    action: function () {
         var creep = this.creep;
-
+        this.talk(creep.memory.swarm + ' ' + creep.memory.target);
 	    if(creep.room.name == creep.memory.target) {
             target = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS)
             if(!target) {

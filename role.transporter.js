@@ -1,10 +1,10 @@
 var utils = require('utils');
 var utilsHarvesting = require('utils.harvesting');
-
 var role_base = require('role.base');
 var roleTransporter = Object.create(role_base);
+
 Object.assign( roleTransporter, {
-    /** @param {Creep} creep **/
+    name : utils.roles.transporter,
     action: function () {
         var creep = this.creep;
         
@@ -21,19 +21,22 @@ Object.assign( roleTransporter, {
 	       var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (
-                        structure.structureType == STRUCTURE_EXTENSION ||
-                        structure.structureType == STRUCTURE_SPAWN ||
-                        structure.structureType == STRUCTURE_TOWER ||
-                        structure.structureType == STRUCTURE_STORAGE
-                        ) 
-                        && structure.energy < structure.energyCapacity;
+                            (
+                            structure.structureType == STRUCTURE_EXTENSION ||
+                            structure.structureType == STRUCTURE_SPAWN ||
+                            structure.structureType == STRUCTURE_TOWER 
+                            ) 
+                            && structure.energy < structure.energyCapacity
+                        )
+                        ||
+                        (structure.structureType == STRUCTURE_STORAGE);
                 }
             });
-            
+            targets.push(creep.room.storage);
             if (targets[0]!=undefined) {
-                
                 if(targets.length > 0) {
                     next = creep.pos.findClosestByRange(targets);
+                    
                     var tres = creep.transfer(next, RESOURCE_ENERGY); 
                     if(tres == ERR_NOT_IN_RANGE) {
                         creep.moveTo(next, {visualizePathStyle: {stroke: utils.color.unload}});
