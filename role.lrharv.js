@@ -6,20 +6,23 @@ Object.assign( roleLRHarv, {
     name : utils.roles.lrharv,
     action: function() {
         var creep = this.creep;
-        this.talk('LRH - '+creep.memory.sourceIndex);
+        this.talk('LRH - ' + creep.memory.sourceIndex + ' ' + creep.memory.srsID);
+
         if (creep.memory.info!=undefined && creep.memory.info.harvested) {
             this.talk(creep.memory.info.harvested);
         }
 
         if (creep.memory.working==undefined) creep.memory.working = false;
         // if creep is bringing energy to a structure but has no energy left
-        if (creep.memory.working == true && creep.carry.energy == 0) {
+        if (creep.memory.working == true && creep.carry.energy < creep.carryCapacity) {
             // switch state
+            creep.say('NOT WORK');
             creep.memory.working = false;
         }
         // if creep is harvesting energy but is full
         else if (creep.memory.working == false && creep.carry.energy == creep.carryCapacity) {
             // switch state
+            creep.say('WORK');
             creep.memory.working = true;
         }
 
@@ -73,18 +76,18 @@ Object.assign( roleLRHarv, {
             // if in target room
             if (creep.room.name == creep.memory.target) {
                 // find source
-                if (creep.memory.sourceIndex==undefined) creep.memory.sourceIndex = 0;
-                if (creep.memory.srsID==undefined) {
-                    var source = creep.room.find(FIND_SOURCES)[creep.memory.sourceIndex];
-                    creep.memory.srsID = source.id
-                } else {
-                    var source = Game.getObjectById(creep.memory.srsID);
-                }
                 
+                if (creep.memory.sourceIndex==undefined) creep.memory.sourceIndex = 0;
+                
+                if (creep.memory.srsID==undefined) {
+                    var sourceid = creep.room.find(FIND_SOURCES)[creep.memory.sourceIndex];
+                    creep.memory.srsID =sourceid.id;
+                }
+                var source = Game.getObjectById(creep.memory.srsID);
                 // try to harvest energy, if the source is not in range
-                if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                    // move towards the source
-                    creep.moveTo(source);
+                var ha = creep.harvest(source);
+                if(ha == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             }
             // if not in target room

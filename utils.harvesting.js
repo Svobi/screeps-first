@@ -5,11 +5,13 @@ var utilsHarvesting = {
         var dropenergy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
             filter: (d) => {return (d.resourceType == RESOURCE_ENERGY)}
             });
+        
         if (dropenergy) {
             if (creep.pickup(dropenergy) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(dropenergy)
             }
         } else {
+            
             var containers = creep.room.find(FIND_STRUCTURES, {
                     filter: function(structure){
                         return structure.structureType == STRUCTURE_CONTAINER &&
@@ -18,6 +20,7 @@ var utilsHarvesting = {
             });
             var container = creep.pos.findClosestByPath(containers);    
             if (container) {
+                
                 var c=creep.withdraw(container, RESOURCE_ENERGY);
                 if(creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(container, {visualizePathStyle: {stroke: utils.color.container}});
@@ -30,10 +33,10 @@ var utilsHarvesting = {
                 filter: function(s){
                     return (
                         s.structureType == STRUCTURE_CONTAINER &&
-                        s.store[RESOURCE_ENERGY] > creep.carryCapacity
+                        s.store[RESOURCE_ENERGY] > 0
                         ) || 
                         (s.structureType == STRUCTURE_STORAGE &&
-                        s.store[RESOURCE_ENERGY] > creep.carryCapacity)
+                        s.store[RESOURCE_ENERGY] > 0)
                 }
             });
         var container = creep.pos.findClosestByPath(containers);    
