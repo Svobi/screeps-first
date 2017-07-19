@@ -99,7 +99,7 @@ Object.assign( roleMiner, {
 		Memory.sources[source.id].miner = creep.id;
 
         if (!creep.memory.isNearSource) {
-		    creep.moveTo(source);
+			creep.moveTo(source);
         } else {
             var resource = creep.pos.findClosestByPath(FIND_SOURCES);
             var store = Game.getObjectById(creep.memory.source);

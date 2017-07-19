@@ -11,13 +11,20 @@ var utilsHarvesting = {
                 creep.moveTo(dropenergy)
             }
         } else {
-            
             var containers = creep.room.find(FIND_STRUCTURES, {
                     filter: function(structure){
                         return structure.structureType == STRUCTURE_CONTAINER &&
-                            structure.store[RESOURCE_ENERGY] > 0
+                            structure.store[RESOURCE_ENERGY] == structure.storeCapacity
                     }
             });
+            if (containers==undefined||containers.length==0) {
+                var containers = creep.room.find(FIND_STRUCTURES, {
+                        filter: function(structure){
+                            return structure.structureType == STRUCTURE_CONTAINER &&
+                                structure.store[RESOURCE_ENERGY] > 0
+                        }
+                });
+            }
             var container = creep.pos.findClosestByPath(containers);    
             if (container) {
                 
@@ -71,8 +78,22 @@ var utilsHarvesting = {
             }
             
             var source = creep.pos.findClosestByPath(FIND_SOURCES,{filter: (s) => s.id == creep.memory.source});
-            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source, {visualizePathStyle: {stroke: utils.color.harvest}});
+
+            // Check if Full Container next to Resource
+            var containers = creep.room.find(FIND_STRUCTURES, {
+                    filter: function(structure){
+                        return structure.structureType == STRUCTURE_CONTAINER &&
+                            structure.store[RESOURCE_ENERGY] == structure.storeCapacity
+                    }
+            });
+            var container = creep.pos.findClosestByPath(containers);
+            
+            if(container!=undefined && (container.length>0) && container.pos.inRangeTo(source, 1)) {
+                    creep.withdraw(container, RESOURCE_ENERGY);
+		    } else {
+                if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source, {visualizePathStyle: {stroke: utils.color.harvest}});
+                }
             }
         }
     }
