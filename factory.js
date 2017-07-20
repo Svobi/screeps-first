@@ -8,11 +8,17 @@ module.exports = {
 	},
 
 	memory: function() {
+	    console.log('check');
 		if(Memory.spawnQue == undefined)
 			Memory.spawnQue = [ ];
 
 		if(Memory.sources == undefined)
 			Memory.sources = { };
+			
+		if(Memory._info == undefined)
+		    Memory._info = {};
+		if(Memory._info.server == undefined)
+		    Memory._info.server = '';
 
     },
     
