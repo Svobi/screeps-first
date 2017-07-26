@@ -14,14 +14,14 @@ module.exports = {
     config : {
         builderOnlyWhenNeeded : true
     },
-    reserve: 25,
+    reserve: 30,
     matrix: [
         {type: utils.roles.lrharv, path: ['WORK', 'CARRY', 'CARRY', 'MOVE'], minPath: ['WORK',  'CARRY', 'MOVE'], cache:false},
         {type: utils.roles.soldier, path: ['ATTACK', 'MOVE'], minPath: ['ATTACK', 'MOVE'], cache:false},
         {type: utils.roles.healer, path: ['WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
         {type: utils.roles.upgrader, path: ['WORK', 'CARRY', 'MOVE'], minPath:['WORK', 'CARRY', 'WORK', 'CARRY', 'MOVE' ], cache:false},
-        {type: utils.roles.builder, path: ['CARRY', 'WORK', 'CARRY', 'CARRY', 'WORK', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
-        {type: utils.roles.transporter, path: ['CARRY', 'CARRY', 'MOVE'], minPath: ['CARRY','MOVE'], cache:false},
+        {type: utils.roles.builder, path: ['MOVE', 'CARRY', 'WORK', 'MOVE', 'CARRY', 'WORK'], minPath: ['WORK', 'CARRY', 'MOVE'], cache:false},
+        {type: utils.roles.transporter, path: ['MOVE', 'CARRY', 'CARRY', 'CARRY'], minPath: ['CARRY', 'MOVE'], cache:false},
         {type: utils.roles.miner, path: ['WORK'], minPath: ['MOVE', 'WORK', 'WORK'], cache:false, maxAddParts: 4},
         {type: utils.roles.harvester, path: ['WORK', 'CARRY', 'MOVE'], minPath: ['WORK', 'CARRY', 'MOVE', 'MOVE'], cache:false},
     ],
@@ -41,7 +41,7 @@ module.exports = {
         var res = 0;
         switch (role) {
             case utils.roles.harvester:
-                res = Math.floor(y) - container*1.5;
+                res =  Math.floor(Math.floor(y) - container*1.5);
                 break;
             case utils.roles.upgrader:
                 var targets = this.spawn.room.find(FIND_CONSTRUCTION_SITES);
@@ -49,9 +49,9 @@ module.exports = {
                     res = Math.floor(y/2);
                 } else {
                     if (this.getResourcesInContainer(this.spawn.room)) { 
-                        res = Math.floor(y/1.2);
+                        res = Math.floor(y/1.4);
                     } else {
-                        res = Math.floor(y/2);
+                        res = Math.floor(y/2.2);
                     }
                 }
                 break;
@@ -66,10 +66,11 @@ module.exports = {
                 }
                 break;
             case utils.roles.healer:
-                res =1;
+                res = 1;
                 break;
             case utils.roles.soldier:
-                res =Math.floor(y/2);
+                res = Math.floor(y/4);
+                if (res<1) res=1;
                 break;
             case utils.roles.miner:
                 res =container;
@@ -164,7 +165,6 @@ module.exports = {
 	    this.actualActive[role].shouldHave = shouldHaveCreepNumber;
 	    if (!alreadyTryedToSpawn) {
             if(roleCreeps.length < shouldHaveCreepNumber) {
-                this.consoleInfo+='-Next:' + role;
                 tryedToSpawn = true;
                 if (role=='soldier') {
                     this.doSpawn(role, {home: this.spawn.room.name, target: this.spawn.room.name, swarm:'Def'});
@@ -194,7 +194,7 @@ module.exports = {
         options.info={
             costs: pattern.costs
         }
-        
+        this.consoleInfo+='-Next:' + role+'('+pattern.costs+')';
         return this.spawn.createCreep(pattern.parts, undefined, options)
     },
     
@@ -210,6 +210,7 @@ module.exports = {
         var use = max - reserve;
         
         if (use<300) use = 300;
+        if (use>1200) use = 1200;
         var usePattern = false;
         var loop = this.matrix.length;
         while (loop--) {
@@ -220,8 +221,9 @@ module.exports = {
         }
         var configParts = [];
         var costs = 0;
-        if (usePattern.cache!=undefined&&usePattern.cache&&usePattern.cache.use==use) {
+        if (false&&(usePattern.cache!=undefined)&&usePattern.cache&&(usePattern.cache.use==use)) {
             configParts = usePattern.cache.build;
+            costs = usePattern.cache.costs;
         } else {
             usePattern.cache = {};
             usePattern.cache.use = use;
@@ -251,6 +253,7 @@ module.exports = {
                 }
             }
             usePattern.cache.build=configParts;
+            usePattern.cache.costs=costs;
         }
         //console.log('build : '+configParts + ' for ' + role);
         return {parts: configParts, costs: costs};

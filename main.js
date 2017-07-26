@@ -8,6 +8,7 @@ var buildingTower = require('building.tower');
 factory.init();
 
 module.exports.loop = function () {
+    
     factory.run();
     utilsGC.run();
     
@@ -22,7 +23,7 @@ module.exports.loop = function () {
 }
 
 /*
-Memory.spawnQue.push({role: 'claimer', options:{target:'W3N7', home:'W1N7', parts:[MOVE, CLAIM]}});
-Memory.spawnQue.push({role: 'builder', options:{target:'W3N7', home:'W1N7'}});
-Memory.spawnQue.push({role: 'upgrader', options:{target:'W3N7', home:'W1N7'}});
+Memory.spawnQue.push({role: 'claimer', options:{target:'W7N9', home:'W5N8', parts:[MOVE, CLAIM]}});
+Memory.spawnQue.push({role: 'builder', options:{target:'W7N9', home:'W5N8'}});
+Memory.spawnQue.push({role: 'upgrader', options:{target:'W7N9', home:'W5N8'}});
 */

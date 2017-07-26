@@ -8,7 +8,6 @@ module.exports = {
 	},
 
 	memory: function() {
-	    console.log('check');
 		if(Memory.spawnQue == undefined)
 			Memory.spawnQue = [ ];
 
